@@ -47,7 +47,7 @@ for i=0L,niter-1 do begin
     undefine,c
     undefine,l
     qso_lightcurve_sim,tobs,tlag=tlag,c=c,l=l,tau=tau,$
-      transfer_sigma=psi_width,psi=psi
+      transfer_sigma=psi_width,psi=psi,sigma=2.0
     c += noise_amplitude*randomn(seed,nobs)
     l += noise_amplitude*randomn(seed,nobs)
     optimal_estimator,tobs,tpsi,[c,l],w,dt,sigma=1.0,mu=tau,psi_in=psi_in,$

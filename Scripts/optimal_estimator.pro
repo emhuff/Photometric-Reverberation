@@ -1,7 +1,15 @@
 function C_CCcov,tobs,sigma,mu
+;This function takes a list of observation times, and produces the
+;covariance matrix of the continuum light curve.
+;
+;
+
 nobs = n_elements(tobs)
 ti = tobs # replicate(1,nobs)
 tj = transpose(ti)
+
+;By hypothesis, the covariance matrix of the continuum is given
+;below. This is equation (2) from covariance.tex
 
 C_cc = sigma^2*Exp(-(abs(ti-tj)/mu))
 
@@ -22,10 +30,26 @@ ti = tobs # replicate(1,nobs)
 tj = transpose(ti)
 C_CL_m = fltarr(nobs,nobs)
 dt  = ti-tj - tpsi
+
+;Note that there are two possible cases for the cross-covariance
+;matrix formula.
+
+;-- two observation times are separated by more than the width of a
+;   psi bin (case 1, indexed by ind1)
+;-- two observation times are separated by less than the width of a
+;   psi bin (case 2, indexed by ind2)
+
 ind1 = where(abs(ti - tj - tpsi) gt w/2.,ct1)
 ind2 = where(abs(ti - tj - tpsi) le w/2.,ct2)
+
+;The correlation function is given by the integral in equation (20)
+;from covariance tex. The two cases of the solution to the integral
+;are given below.
+
 if ct1 gt 0 then C_CL_m[ind1] = 2*mu*psi_m*sigma^2*$
   exp(-abs(dt[ind1])/mu)*sinh(w/2/mu)/delta_t
+
+
 if ct2 gt 0 then C_CL_m[ind2] = 2*mu*psi_m*sigma^2*$
   (1.-exp(-w/2/mu)*cosh((dt[ind2])/mu))/delta_t
 return,C_CL_m
