@@ -2,8 +2,8 @@ pro estimator_test
 
 ;Generate a very long, very well-sampled lightcurve.
 
-nobs = 400.
-dt = 24.
+nobs = 300.
+dt = 4.
 tobs = findgen(nobs)*dt
 ;tobs =total(24.*randomu(seed,nobs),/cum)
 tau=200.
