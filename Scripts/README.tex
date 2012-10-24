@@ -1,0 +1,59 @@
+\documentclass[11pt,a4paper]{article}
+\bibliographystyle{apalike}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{natbib}
+
+\begin{document}
+
+
+\title{README for the {\tt scripts} product}
+\author{Eric M. Huff, Nicholas P. Ross et al. }
+\date{\today}
+\maketitle
+
+
+\begin{abstract}
+\end{abstract}
+
+\section{Particulars}
+\subsection{What This Is}
+The idl scripts here are intended to accomplish the following tasks:
+\begin{itemize}
+\item generate synthetic quasar lightcurves,
+\item generate analytic covariance matrices desribing the cross- and
+auto-correlation properties of those lightcurves
+\item combine the analytic covariance matrices to form an optimal
+  estimator
+\item run the aforementioned optimal estimator on SDSS Stripe 82
+  photometric lightcurves, and extract aggregate estimates of the
+  QSO transfer function.
+\end{itemize}
+
+\subsection{Who To Contact}
+
+
+\subsection{To Do List (HELP, PLEASE!)}
+
+
+\section{Set-Up}
+You'll also need idlutils and eveything idlutils requires (is this correct?)
+
+\noindent
+The next part is currently stolen from one of the other READMEs...\\
+
+\noindent
+    {\tt svn co svn+ssh://sdss3svn@sdss3.org/repo/boss/bossqsomask bossqsomask} \\
+    {\tt svn co svn+ssh://sdss3svn@sdss3.org/repo/boss/bosslss bosslss} \\
+
+
+\section{Running The Code}
+{\tt IDL $>$} 
+
+\section{Caveats}
+
+\section{Version Control}
+Mon Oct  1 11:40:36 PDT 2012      NPR    v0.0.01  Document Started
+
+
+\end{document}

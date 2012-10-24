@@ -1,0 +1,245 @@
+\documentclass[11pt,a4paper]{article}
+\bibliographystyle{apalike}
+\usepackage{amssymb}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage[margin=0.4in]{geometry}
+\begin{document}
+
+\section{Optimal Quadratic Estimators}
+Given a model covariance matrix $C=S+N$ including both the signal and
+noise covariance, we can form the optimal quadratic estimator for some
+paramters $\mathbf{\theta}$ by:
+\begin{align}
+  F_{mn} &=\frac{1}{2}{\rm Tr}\left[\mathbf{C}^{-1}\mathbf{C}_{,m}\mathbf{C}^{-1}\mathbf{C}_{,n}\right]\nonumber \\
+  q_n &=\frac{1}{2}{\rm Tr}\left[\mathbf{C}^{-1}\mathbf{C}_{,n}\mathbf{C}^{-1}\mathbf{N}\right]\nonumber \\
+  f_n &=\frac{1}{2}\mathbf{y}^{\rm
+    T}\mathbf{C}^{-1}\mathbf{C}_{,n}\mathbf{C}^{-1}\mathbf{y}.\nonumber \\
+  \hat{\theta}_m &
+  =\sum\limits_N\left(F^{-1}\right)_{mn}\left(q_n-f_n\right) \label{eqn:estimator}
+\end{align}
+Here, $\mathbf{y}$ is the full data covariance matrix (think of this
+as making a single long vector from the two measured timeseries
+$C(t_i)$ and $L(t_i)$). $\mathbf{C}$ is the full covariance of this
+vector, and the $\mathbf{C}_{,n}$ notation is meant to indicate the
+derivative of the covariance matrix with respect to the $n^{\rm th}$
+parameter we are trying to measure.
+
+\section{The Problem}
+We observe two light curves for quasars -- $C(t)$, the continuum, and
+$L(t)$, the line emission.
+
+We believe that $C(t)$ is that it is a stationary random process best
+modeled as a damped random walk parameterized by $\sigma$ and $\mu$,
+such that:
+\begin{equation}
+  {\rm cov}\left(C(t_i),C(t_j)\right)=\xi_{CC}=\sigma^2e^{-\frac{|t_i-t_j|}{\mu}}
+\end{equation}
+We allow that the light curves are observed at irregular times, $t_i$,
+but insist that $C$ and $L$ are always observed simultaneously.
+
+The idea for $L(t)$ is that line emission lags the continuum by some
+time that depends (possibly straightforwardly) on the BH mass, and
+since the broad-line-emitting region (BLR) is larger than the
+continuum-emitting region (CR), the BLR emission is also less
+synchronized. We represent this lag and desynchronicity by convolution
+with a transfer function $\psi(t)$ such that:
+\begin{equation}
+  L(t) = \int_{-\infty}^{\infty}C(t')\psi(t'-t)\, dt'
+\end{equation}
+If, for example, the BLR was an exact copy of the CR light curve, but
+with some lag $\tau$, then we would have $\psi(t)= \delta(t-\tau)$.
+We will parameterize $\psi$, until we have a good reason not to, as a
+set of binned amplitudes, with bin width $w$:
+\begin{equation}
+  \psi(t)=\sum\limits_m \psi_m \Pi\left(t-t_m|w\right)
+  \label{eqn:psiparam}
+\end{equation}
+where $\Pi(t|w)$ is a top hat function of unit area and width $w$.
+
+\section{Covariance Matrices}
+In order to make use of equation~\ref{eqn:estimator}, we need to calculate the
+full data covariance matrix. For our purposes, the observations
+are independent and the errors are known, so it is the signal
+covariance matrix between observation times $S_{ij}=S(t_i-t_j)$  that
+needs to be calculated. Fortunately, this can be done analytically for
+both timeseries. 
+
+${\rm cov}(C(t_i),C(t_j))$ is known by hypothesis, and fortunately the
+DRW correlation function is analytically tractable, so the BLR-CR and
+BLR-BLR correlations can, with some effort, be written down.
+
+
+\subsection{BLR covariance}
+To write the BLR covariance:
+\begin{align}
+C_{LL}(t) & = \int_{-\infty}^{\infty}L(t_i)L(t_i-(t_i-t_j)) dt_i \\
+& = \int_{-\infty}^{\infty}dt_i\,\,\left[\int_{-\infty}^{\infty}dt'\,\,C(t')\psi(t'-t_i)\right]\left[\int_{-\infty}^{\infty}dt''\,\,C(t'')\psi(t''-t_i+t)\right]
+\end{align}
+For the above and what follows, we will write the unprimed $t$ for
+$t_i-t_j$.  Taking the Fourier Transform (FT) of this expression with
+respect to $t$ causes $\psi \mapsto \hat{\psi}e^{-i\omega
+  \left(t''-t_i\right)}$. The additional phase factor turns the other
+integrals into either FTs or inverse FTs, and we are left with:
+\begin{equation}
+  = |\hat{\psi}|^2|\hat{C}|^2
+\end{equation}
+Inverse-transforming this expression, we have that the line emission
+covariance is simply the convolution of the CR correlation function
+with a new quantity, $\xi_{\psi}$:
+\begin{align}
+  \xi_{\psi} = \int_{-\infty}^{\infty}dt'\,\psi(t')\psi(t'-t) \\
+  C_{LL}(t)= \xi_{LL} = \int_{\infty}^{\infty}dt' \xi_{CC}(t')\xi_{\psi}(t'-t)
+\end{align}
+Next, we hope to write $\xi_{LL}$ in terms of our chosen parameterization, given
+by equation~\ref{eqn:psiparam}. Doing this requires evaluating the
+following integrals: 
+\begin{equation}
+\xi_{\psi}^{mn}(t)=
+\psi_m\psi_n\int_{-\infty}^{\infty}dt'\,\Pi(t'-t_m|w)\Pi(t'-t-t_n|w)
+  \label{eqn:xipsi}
+\end{equation}
+\begin{equation}
+C_{LL}^{mn}=\int_{-\infty}^{\infty}dt'\,\xi_{CC}(t')\xi_{\psi}^{mn}(t'-t)
+\label{eqn:cll_integral}
+\end{equation}
+The integral in equation~\ref{eqn:xipsi} is straightforward -- the
+convolution of identical unit-area top hat functions of width $w$ (and
+height $w^{_-1}$) is an isosceles triangle centered at the origin of
+height $w^{-1}$ and base $2w$, which I'll denote as $T(x|w)$:
+\begin{equation}
+T(x|w)= \begin{cases}
+  \frac{1}{w}-\frac{|x|}{w^2} & \text{ for $|x| \le w $} \\
+  0 & \text{else}
+\end{cases}
+\end{equation}
+Now the autocorrelation of the binned transfer function with itself
+is:
+\begin{equation}
+  \xi_{\psi}^{mn}(t)= \psi_m\psi_n\,T(t-(t_m-t_n)|w)
+\end{equation}
+We can now perform the integral in equation~\ref{eqn:cll_integral}.
+\begin{equation}
+C_{LL} = \sum\limits_{m,n}\psi_m\psi_n\int_{-\infty}^{\infty}dt'\,\,\sigma^2e^{-\frac{|t'|}{\mu}}T((t'-t)-(t_m-t_n)|w)
+\end{equation}
+First, make the integration variable swap $t'\mapsto z =
+(t'-t)-(t_m-t_n)$, and note that the new limits of integration are $-w
+ \le z \le w$. This can be done analytically; there are two cases.
+\begin{equation}
+  C_{LL}=
+  \sum\limits_{m,n}\psi_m\psi_ne^{-\frac{|t+(t_m-t_n)}{\mu}}\times  
+  \begin{cases}
+    2\frac{\mu^2}{w^2}\left[\cosh\left(\frac{w}{\mu}\right)-1\right] & \text{for
+      $|t+(t_m-t_n)|>w$} \\
+    2\frac{\mu}{w}\cosh\left(\frac{t+(t_m-t_n)}{\mu}\right)\left[1+\mu\frac{e^{-\frac{\mu}{w}}-1}{w}\right]
+      & \text{for $|t+(t_m-t_n)|<w$}
+  \end{cases}
+\end{equation}
+This is one part of the covariance matrix which appears (along with
+its $\psi$-derivatives) in the estimator in
+equation~\label{eqn:estimator}.
+
+
+\subsection{CR-BLR covariance}
+To write the cross-covariance:
+\begin{align}
+{\rm cov}(C(t_i),L(t_j))& = \int_{-\infty}^{\infty}dt'C(t_i)\int_{-\infty}^{\infty}C(t'')\psi(t''-t_i-t)
+\end{align}
+As before, taking the Fourier transform with respect to $t$ produces
+$\psi\mapsto \hat{\psi}e^{-i\omega(t''-t_j)}$. This converts the
+remaining integrals into Fourier and inverse Fourier transforms; the
+covariance matrix in frequency space is now:
+\begin{equation}
+  \hat{C}_{CL}(\omega) = |\hat{C}|^2\hat{\psi}
+\end{equation}
+Performing the inverse transform gives us the expression for the
+time-domain covariance:
+\begin{equation}
+C_{CL}(t) = \int_{-\infty}^{\infty}\,dt'\,\, \xi_{CC}(t')\psi(t'-t)
+\end{equation}
+Re-writing $\psi$ in its parameterized form, we have:
+\begin{equation}
+C_{CL}(t) = \sum\limits_{m}\, \psi_m\,\int_{-\infty}^{\infty}\,dt'\,\,\xi_{CC}(t')\Pi(t'-t-t_m|w)
+\end{equation}
+Substituting in the expression for $\xi_{CC}$ yields:
+\begin{equation}
+C_{CL}(t) = \sum\limits_{m}\, \sigma^2\psi_m\,\int_{-\infty}^{\infty}\,dt'e^{-\frac{|t'|}{\mu}}\Pi(t'-t-t_m|w)
+\end{equation}
+The convolution with the top-hat filter can be done analytically:
+\begin{equation}
+  \int_{-\infty}^{\infty}\,dt'e^{-\frac{|t'|}{\mu}}\Pi(t'-t-t_m|w)
+  = \begin{cases}
+    2\mu e^{-\frac{|t-t_m|}{\mu}}\sinh(\frac{w}{2\mu}) & \text{for
+      $|t-t_m|>\frac{w}{2}$} \\
+    2\mu e^{-\frac{w}{2\mu}}\sinh(\frac{t-t_m}{2\mu}) & \text{for $|t-t_m|<\frac{w}{2}$}
+  \end{cases}
+\end{equation}
+
+Inserting this into the previous expression yields the analytic form
+of $C_{CL}$:
+\begin{equation}
+  C_{CL}=\sum\limits_{m}\,\,2\mu\,\psi_m\times
+  \begin{cases}
+    e^{-\frac{|t-t_m|}{\mu}}\sinh\left(\frac{w}{2\mu}\right) &
+    \text{for
+      $|t-t_m|>w$} \\
+    e^{-\frac{w}{2\mu}}\sinh\left(\frac{t-t_m}{2\mu}\right) &
+    \text{for $|t-t_m|<w$}
+  \end{cases}
+\end{equation}
+
+\subsection{Covariance Matrix Summary}
+The full signal covariance matrix $S$ can be written:
+\begin{equation}
+S = \left(\begin{matrix}
+C_{CC} & C_{CL} \\
+C_{CL} & C_{LL}
+\end{matrix}\right)
+\label{eqn:Smatrix}
+\end{equation}
+where the expressions for the covariances matrices are, for the sake
+of neatness and completeness:
+\begin{align}
+  C_{CC,ij}& = \sigma^2e^{-\frac{|t_i-t_j|}{\mu}} \\
+ C_{CL,ij}&=\sum\limits_{m}\,\,2\mu\,\psi_m\sigma^2\times
+  \begin{cases}
+    e^{-\frac{|t_i-t_j-t_m|}{\mu}}\sinh\left(\frac{w}{2\mu}\right) &
+    \text{for
+      $|t_i-t_j-t_m|>w$} \\
+    e^{-\frac{w}{2\mu}}\sinh\left(\frac{t_i-t_j-t_m}{2\mu}\right) &
+    \text{for $|t_i-t_j-t_m|<w$}
+  \end{cases} \\
+  C_{LL,ij}&=
+  \sum\limits_{m,n}\psi_m\psi_n\sigma^2e^{-\frac{|t_i-t_j+(t_m-t_n)|}{\mu}}\times  
+  \begin{cases}
+    2\frac{\mu^2}{w^2}\left[\cosh\left(\frac{w}{\mu}\right)-1\right] & \text{for
+      $|t_i-t_j+(t_m-t_n)|>w$} \\
+    2\frac{\mu}{w}\cosh\left(\frac{t_i-t_j+(t_m-t_n)}{\mu}\right)\left[1+\mu\frac{e^{-\frac{\mu}{w}}-1}{w}\right]
+      & \text{for $|t_i-t_j+(t_m-t_n)|<w$}
+    \end{cases}
+\end{align}
+
+
+
+\section{Constructing the Estimator.}
+In principle, now, everything is in place. The derivatives of $S$ with
+respect to the parameters $\psi_m$ are easy to compute -- they
+collapse the sum over $m$ to a single term in each of the cases
+above. 
+
+What's notable about this is that, as written, {\it you need to know
+  the answer to compute the estimator} -- the form of $\hat{\psi}$
+depends explicitly on $\psi$. But that's actually okay -- what people
+do with power spectra estimators is guess the answer, $\psi_{\rm
+  guess}$, and then use that as the first of two iterations; the
+$\psi_{\rm guess}$ is updated after one pass, and then the best guess
+is used to build the real estimator.
+
+I don't think it's useful to try to write the analytic form for
+$C^{-1}$ -- rather, this part should just be done numerically. The
+next step is to try this on simulated data.
+
+
+
+\end{document}
