@@ -47,11 +47,11 @@ ind2 = where(abs(ti - tj - tpsi) le w/2.,ct2)
 ;are given below.
 
 if ct1 gt 0 then C_CL_m[ind1] = 2*mu*psi_m*sigma^2*$
-  exp(-abs(dt[ind1])/mu)*sinh(w/2/mu)/delta_t
+  exp(-abs(dt[ind1])/mu)*sinh(w/2/mu)
 
 
 if ct2 gt 0 then C_CL_m[ind2] = 2*mu*psi_m*sigma^2*$
-  (1.-exp(-w/2/mu)*cosh((dt[ind2])/mu))/delta_t
+  (1.-exp(-w/2/mu)*cosh((dt[ind2])/mu))
 return,C_CL_m
 end
 

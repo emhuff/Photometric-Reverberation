@@ -2,11 +2,11 @@ pro estimator_test
 
 ;Generate a very long, very well-sampled lightcurve.
 
-nobs = 300.
-dt = 4.
+nobs = 500.
+dt = 50.
 tobs = findgen(nobs)*dt
 ;tobs =total(24.*randomu(seed,nobs),/cum)
-tau=200.
+tau=100.
 tlag= 120
 psi_width = 60.
 qso_lightcurve_sim,tobs,tlag=tlag,c=c,l=l,tau=tau,$
@@ -26,16 +26,17 @@ l += noise_amplitude*randomn(seed,nobs)
 ;We know that the lag is at t=100.
 ;Let's solve for psi in bins of width=20, ranging from t=0 to t=200.
 w= 50.
-tmax = 200.
+tmax = 500.
 tmin = 0.
 nbins = float(ceil((tmax-tmin)/w))
 tpsi = [0,w/2+w*findgen(nbins)]
-;tpsi = w*findgen(nbins)
+
 
 ;psi_in = exp(-(tpsi-tlag)^2/2./psi_width^2)
 ;psi_in *= 0.
 ;psi_in[0] = 1.0/w
 psi_in = interpol(psi,tobs[0:n_elements(psi)-1],tpsi)
+psi_in = psi_in/total(psi_in)
 
 ;Next, compute the covariance matrices and the optimal estimator and all.
 
@@ -53,9 +54,9 @@ for i=0L,niter-1 do begin
     optimal_estimator,tobs,tpsi,[c,l],w,dt,sigma=1.0,mu=tau,psi_in=psi_in,$
       psi_out=psi_out,C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,noise=noise
     psi_avg += psi_out
-    cl = c_correlate(c,l,findgen(nobs))
-    ll = a_correlate(l,findgen(nobs))
-    cc = a_correlate(c,findgen(nobs))
+    cl = c_correlate(c,l,findgen(nobs),/covariance)
+    ll = a_correlate(l,findgen(nobs),/covariance)
+    cc = a_correlate(c,findgen(nobs),/covariance)
     plot,tobs,LLCov[*,0],xr=[0,500]
     oplot,tobs,ll,color=1.5e7,thick=2
     stop
