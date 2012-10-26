@@ -1,8 +1,6 @@
 function C_CCcov,tobs,sigma,mu
 ;This function takes a list of observation times, and produces the
 ;covariance matrix of the continuum light curve.
-;
-;
 
 nobs = n_elements(tobs)
 ti = tobs # replicate(1,nobs)
@@ -46,11 +44,11 @@ ind2 = where(abs(ti - tj - tpsi) le w/2.,ct2)
 ;from covariance tex. The two cases of the solution to the integral
 ;are given below.
 
-if ct1 gt 0 then C_CL_m[ind1] = 2*mu*psi_m*sigma^2*$
+if ct1 gt 0 then C_CL_m[ind1] = 2*psi_m*sigma^2*$
   exp(-abs(dt[ind1])/mu)*sinh(w/2/mu)
 
 
-if ct2 gt 0 then C_CL_m[ind2] = 2*mu*psi_m*sigma^2*$
+if ct2 gt 0 then C_CL_m[ind2] = 2*psi_m*sigma^2*$
   (1.-exp(-w/2/mu)*cosh((dt[ind2])/mu))
 return,C_CL_m
 end
@@ -67,25 +65,41 @@ tj = transpose(ti)
 
 dt = ti-tj + (tpsi_m-tpsi_n)
 
+
+
 C_LL_mn = fltarr(nobs,nobs)
 
-ind1 = where(abs( dt ) gt w,ct1)
-ind2 = where(abs( dt ) le w,ct2)
+ind1 = where(dt gt  w,ct1)
+ind2 = where(dt lt -w,ct2)
+ind3 = where(dt ge -w AND dt lt 0, ct3)
+ind4 = where(dt gt  0 AND dt le w, ct4)
 
-;if ct1 gt 0 then $
-;  C_LL_mn[ind1] = psi_m*psi_n*sigma^2*exp(-abs(dt[ind1])/mu)*2*(mu/w)^2*$
-;  (cosh(w/mu)-1)
-;if ct2 gt 0 then $
-;  C_LL_mn[ind2] = psi_m*psi_n*sigma^2*2*mu/w*cosh(dt[ind2]/mu)*$
-;  (1+mu/w*(exp(-mu/w)-1))
-if ct1 gt 0 then $
-  C_LL_mn[ind1] = mu^2 * sigma^2 * psi_m * psi_n*$
-  (exp(-abs(dt[ind1]-w)/mu) + exp(-abs(dt[ind1]+w)/mu)-2*exp(-abs(dt[ind1])))
-if ct2 gt 0 then $
-  C_LL_mn[ind2] = mu^2 * sigma^2 * psi_m * psi_n*$
-  (exp(-abs(dt[ind2]-w)/mu) + exp(-abs(dt[ind2]+w)/mu)-2*exp(-abs(dt[ind2]))); $
-;   - 2*abs(abs(dt[ind2])-w)/mu)
-;if total(C_LL_mn lt 0) gt 0 then stop
+if ct1 gt 0 then begin
+    y = dt[ind1]
+    C_LL_mn[ind1] = sigma^2*mu^2/w^2*psi_m*psi_n * $
+      exp(-w/mu - y/mu)*(exp(w/mu)-1.)^2
+endif
+
+if ct2 gt 0 then begin
+    y = dt[ind2]
+    C_LL_mn[ind2] = sigma^2*mu^2/w^2*psi_m*psi_n * $
+      exp(-w/mu + y/mu)*(exp(w/mu)-1.)^2
+endif
+if ct3 gt 0 then begin
+    y = dt[ind3]
+    C_LL_mn[ind3] = -sigma^2*mu/w^2*psi_m*psi_n * $
+      exp(-w/mu-/mu) * $
+      (-mu - mu*exp(2*y/mu) + 2*mu*exp(w/mu+2*y/mu) - 2*w*exp(w/mu+y/mu) $
+       - 2*y*exp(w/mu+y/mu))
+endif
+if ct4 gt 0 then begin
+    y = dt[ind4]
+    C_LL_mn[ind4] = sigma^2*mu/w^2*psi_m*psi_n * $
+      exp(-w/mu-y/mu) * $
+      (mu - 2*mu*exp(w/mu) + mu*exp(2*y/mu) + 2*w*exp(w/mu+y/mu) - $
+       2*y*exp(w/mu+y/mu))
+endif
+
 return,C_LL_mn
 end
 
