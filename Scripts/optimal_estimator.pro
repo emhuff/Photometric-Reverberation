@@ -71,7 +71,7 @@ C_LL_mn = fltarr(nobs,nobs)
 
 ind1 = where(dt gt  w,ct1)
 ind2 = where(dt lt -w,ct2)
-ind3 = where(dt ge -w AND dt lt 0, ct3)
+ind3 = where(dt ge -w AND dt le 0, ct3)
 ind4 = where(dt gt  0 AND dt le w, ct4)
 
 if ct1 gt 0 then begin
@@ -88,7 +88,7 @@ endif
 if ct3 gt 0 then begin
     y = dt[ind3]
     C_LL_mn[ind3] = -sigma^2*mu/w^2*psi_m*psi_n * $
-      exp(-w/mu-/mu) * $
+      exp(-w/mu-y/mu) * $
       (-mu - mu*exp(2*y/mu) + 2*mu*exp(w/mu+2*y/mu) - 2*w*exp(w/mu+y/mu) $
        - 2*y*exp(w/mu+y/mu))
 endif

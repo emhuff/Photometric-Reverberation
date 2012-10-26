@@ -2,13 +2,13 @@ pro estimator_test
 
 ;Generate a very long, very well-sampled lightcurve.
 
-nobs = 400.
-dt = 7.3
+nobs = 500.
+dt = 10.3
 tobs = findgen(nobs)*dt
 ;tobs =total(24.*randomu(seed,nobs),/cum)
 tau=100.
-tlag= 80.
-psi_width = 20.
+tlag= 184.
+psi_width = 60.
 qso_lightcurve_sim,tobs,tlag=tlag,c=c,l=l,tau=tau,$
   transfer_sigma=psi_width,psi=psi
 
@@ -32,11 +32,11 @@ nbins = float(ceil((tmax-tmin)/w))
 tpsi = [w/2+w*findgen(nbins)]
 
 
-psi_in = exp(-(tpsi-tlag)^2/2./psi_width^2)
-psi_in *= 0.
-psi_in[0] = 1.0
-;psi_in = interpol(psi,tobs[0:n_elements(psi)-1],tpsi)
-;psi_in = psi_in/total(psi_in)
+;psi_in = exp(-(tpsi-tlag)^2/2./psi_width^2)
+;psi_in *= 0.
+;psi_in[0] = 1.0
+psi_in = interpol(psi,tobs[0:n_elements(psi)-1],tpsi)
+psi_in = psi_in/total(psi_in)
 
 ;Next, compute the covariance matrices and the optimal estimator and all.
 
@@ -60,7 +60,7 @@ for i=0L,niter-1 do begin
     plot,tobs,LLCov[*,0],xr=[0,500]
     oplot,tobs,ll,color=1.5e7,thick=2
     
-
+stop
 endfor
 psi_avg = psi_avg/float(niter)
 
