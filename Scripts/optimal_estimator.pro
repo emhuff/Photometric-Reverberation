@@ -29,28 +29,30 @@ tj = transpose(ti)
 C_CL_m = fltarr(nobs,nobs)
 dt  = ti-tj - tpsi
 
-;Note that there are two possible cases for the cross-covariance
-;matrix formula.
+ind1 = where(dt gt w,ct1)
+ind2 = where(dt ge -w AND dt le w,ct2)
+ind3 = where(dt lt -w, ct3)
 
-;-- two observation times are separated by more than the width of a
-;   psi bin (case 1, indexed by ind1)
-;-- two observation times are separated by less than the width of a
-;   psi bin (case 2, indexed by ind2)
+if ct1 gt 0 then begin
+    y = dt[ind1]
+    C_CL_m[ind1] = sigma^2*mu*psi_m/w* $
+      exp(-w/mu - y/mu) * (exp(2*w/mu)-1)
+endif
 
-ind1 = where(abs(ti - tj - tpsi) gt w/2.,ct1)
-ind2 = where(abs(ti - tj - tpsi) le w/2.,ct2)
+if ct2 gt 0 then begin
+    y = dt[ind2]
+    C_CL_m[ind2] = - sigma^2*mu*psi_m/w* $
+      exp(-w/mu - y/mu) * $
+      (1+ exp(2*y/mu) - 2*exp(w/mu+y/mu))
+endif
 
-;The correlation function is given by the integral in equation (20)
-;from covariance tex. The two cases of the solution to the integral
-;are given below.
+if ct3 gt 0 then begin
+    y = dt[ind3]
+    C_CL_m[ind3] = sigma^2*mu*psi_m/w * $
+      2*exp(y/mu)*sinh(w/mu)
+endif
 
-if ct1 gt 0 then C_CL_m[ind1] = 2*psi_m*sigma^2*$
-  exp(-abs(dt[ind1])/mu)*sinh(w/2/mu)
-
-
-if ct2 gt 0 then C_CL_m[ind2] = 2*psi_m*sigma^2*$
-  (1.-exp(-w/2/mu)*cosh((dt[ind2])/mu))
-return,C_CL_m
+return,C_CL_m/2.
 end
 
 
@@ -115,15 +117,17 @@ if ~keyword_set(psi_in) then psi_in = replicate(1./float(npsi),npsi)
 if ~keyword_set(sigma) then sigma = 1.0
 if ~keyword_set(mu) then mu = 100.
 
-C_CL = fltarr(nobs,nobs)
-C_LL = fltarr(nobs,nobs)
+C_CL  = fltarr(nobs,nobs)
+C_CLt = fltarr(nobs,nobs)
+C_LL  = fltarr(nobs,nobs)
 
 
 C_CC = C_CCcov(tobs,sigma,mu)
 print,'making C_CL:'
 for m = 0L,npsi-1 do begin
     print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
-    C_CL += C_CLcov_m(tobs,tpsi[m],psi_in[m],sigma,mu,w,dt)
+    C_CL  += C_CLcov_m( tobs,tpsi[m],psi_in[m],sigma,mu,w,dt)
+    C_CLt += C_CLcov_m(-tobs,tpsi[m],psi_in[m],sigma,mu,w,dt)
 endfor
 print,'Making C_LL:'
 for m = 0L,npsi-1 do begin
@@ -137,8 +141,8 @@ Ncovar = diag_matrix(noise)
 
 ;Make the Big Covariance Matrix.
 
-C = [[C_CC,C_CL],[C_CL,C_LL]]+Ncovar
-Cinv = LA_invert(C,status=status)
+C = [[C_CC,C_CL],[transpose(C_CL),C_LL]]+Ncovar
+Cinv = LA_invert(C,status=status,/double)
 Fisher = dblarr(npsi,npsi)
 q = dblarr(npsi)
 f = dblarr(npsi)
@@ -147,25 +151,28 @@ print,'Building the Fisher Matrix.'
 for n = 0,npsi-1 do begin
     print,string(form= '("Progress:",I02,"%")',float(n)/float(npsi)*100.)
     for m = 0,npsi-1 do begin
-        dCL_dpsi_m = C_CLcov_m(tobs,tpsi[m],1.,sigma,mu,w,dt)
-        dCL_dpsi_n = C_CLcov_m(tobs,tpsi[n],1.,sigma,mu,w,dt)
-        dLL_dpsi_m = fltarr(nobs,nobs)
-        dLL_dpsi_n = fltarr(nobs,nobs)
+        dCL_dpsi_m  = C_CLcov_m( tobs,tpsi[m],1.,sigma,mu,w,dt)
+        dCL_dpsi_mt = C_CLcov_m(-tobs,tpsi[m],1.,sigma,mu,w,dt)
+        dCL_dpsi_n  = C_CLcov_m( tobs,tpsi[n],1.,sigma,mu,w,dt)
+        dCL_dpsi_nt = C_CLcov_m(-tobs,tpsi[n],1.,sigma,mu,w,dt)
+        dLL_dpsi_m  = fltarr(nobs,nobs)
+        dLL_dpsi_n  = fltarr(nobs,nobs)
         for i = 0,npsi-1 do begin
             dLL_dpsi_m += C_LLcov_mn(tobs,tpsi[m],tpsi[i],1.,psi_in[i],sigma,mu,w,dt)
-            dLL_dpsi_n += C_LLcov_mn(tobs,tpsi[i],1.,psi_in[i],psi_in[n],sigma,mu,w,dt)
+            dLL_dpsi_n += C_LLcov_mn(tobs,tpsi[i],tpsi[n],psi_in[i],1.,sigma,mu,w,dt)
+;function C_LLcov_mn,tobs,tpsi_m,tpsi_n,psi_m,psi_n,sigma,mu,w,delta_t
         endfor
 ;Now make dC_dm:
-        dC_dm = [[C_CC*0.,dCL_dpsi_m],[dCL_dpsi_m,dLL_dpsi_m]]
+        dC_dm = [[C_CC*0.,dCL_dpsi_m],[dCL_dpsi_mt,dLL_dpsi_m]]
 ;And make dC_dn:
-        dC_dn = [[C_CC*0.,dCL_dpsi_n],[dCL_dpsi_n,dLL_dpsi_n]]
+        dC_dn = [[C_CC*0.,dCL_dpsi_n],[dCL_dpsi_nt,dLL_dpsi_n]]
         Fisher[m,n] = 0.5*trace(Cinv # dC_dm # Cinv # dC_dn)
     endfor
     q[n] = 0.5*trace(Cinv # dC_dn # Cinv # Ncovar)
     f[n] = 0.5*transpose(data)# Cinv # dC_dn # Cinv # data
 endfor
 
-Finv = LA_invert(Fisher,status=status2)
+Finv = LA_invert(Fisher,status=status2,/double)
 psi_out = Finv # (q-f)
 
 end
