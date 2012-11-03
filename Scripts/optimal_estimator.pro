@@ -141,7 +141,7 @@ Ncovar = diag_matrix(noise)
 
 ;Make the Big Covariance Matrix.
 
-C = [[C_CC,C_CL],[transpose(C_CL),C_LL]]+Ncovar
+C = [[C_CC,C_CL],[C_CLt,C_LL]]+Ncovar
 Cinv = LA_invert(C,status=status,/double)
 Fisher = dblarr(npsi,npsi)
 q = dblarr(npsi)

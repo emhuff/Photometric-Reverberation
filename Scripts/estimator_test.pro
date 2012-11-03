@@ -1,13 +1,13 @@
-pro estimator_test
+pro estimator_test,tlag=tlag,nobs=nobs,w=w
 
 ;Generate a very long, very well-sampled lightcurve.
 
-nobs = 50.
-dt = 19.
+if ~keyword_set(nobs) then nobs = 50.
+dt = 1000/float(nobs)
 tobs = findgen(nobs)*dt
 ;tobs =total(24.*randomu(seed,nobs),/cum)
 tau=200.
-tlag= 250.
+if n_elements(tlag) eq 0 then  tlag= 300.
 psi_width = 80.
 qso_lightcurve_sim,tobs,tlag=tlag,c=c,l=l,tau=tau,$
   transfer_sigma=psi_width,psi=psi
@@ -17,15 +17,12 @@ qso_lightcurve_sim,tobs,tlag=tlag,c=c,l=l,tau=tau,$
 ;ll = a_correlate(l,findgen(nobs))
 
 ;Add a small amount of white noise.
-noise_amplitude = .050
+noise_amplitude = .010
 noise = replicate(noise_amplitude^2,2*nobs)
 
-
-
 ;Now let us see if we can correctly back out the transfer function.
-;We know that the lag is at t=100.
-;Let's solve for psi in bins of width=20, ranging from t=0 to t=200.
-w= 40.
+;Let's solve for psi in bins of width=w, ranging from t=0 to t=tmax
+if ~keyword_set(w) then  w= 40.
 tmax = 1000.
 tmin = 0.
 nbins = float(ceil((tmax-tmin)/w))
@@ -42,7 +39,7 @@ psi_in[0] = 1.0
 
 
 
-niter= 20.
+niter= 50.
 psi_avg = fltarr(nbins,niter)
 for i=0L,niter-1 do begin
     undefine,c
@@ -68,7 +65,7 @@ prepare_plots,/color
 
 filename = string(form='("../Plots/estimator_test.tlag.",I05,".ps")',long(tlag))
 
-psopen,filename,/color
+psopen,filename,/color,xsize=6,ysize=6,/inches
 plot,tpsi,total(psi_avg,2)/10.,xtitle='t (days)',ytitle='!7 w !6'
 oplot,tobs,exp(-(tobs-tlag)^2/2./psi_width^2),color=200
 legend,['input','estimated'],line=0,color=[-1,200],/top,/right,box=0,charsize=2
