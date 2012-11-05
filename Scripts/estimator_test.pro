@@ -39,7 +39,7 @@ psi_in[0] = 1.0
 
 
 
-niter= 50.
+niter= 200.
 psi_avg = fltarr(nbins,niter)
 for i=0L,niter-1 do begin
     undefine,c
@@ -66,7 +66,7 @@ prepare_plots,/color
 filename = string(form='("../Plots/estimator_test.tlag.",I05,".ps")',long(tlag))
 
 psopen,filename,/color,xsize=6,ysize=6,/inches
-plot,tpsi,total(psi_avg,2)/10.,xtitle='t (days)',ytitle='!7 w !6'
+plot,tpsi,total(psi_avg,2)/float(niter),xtitle='t (days)',ytitle='!7 w !6'
 oplot,tobs,exp(-(tobs-tlag)^2/2./psi_width^2),color=200
 legend,['input','estimated'],line=0,color=[-1,200],/top,/right,box=0,charsize=2
 psclose
