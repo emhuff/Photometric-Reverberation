@@ -125,8 +125,7 @@ C_{LL} = \sum\limits_{m,n}\psi_m\psi_n\int_{-\infty}^{\infty}dt'\,\,\sigma^2e^{-
 \end{equation}
 First, make the integration variable swap $t'\mapsto z =
 (t'-t)-(t_m-t_n)$, and note that the new limits of integration are $-w
-\le z \le w$. This can be done analytically; there are six (!) cases,
-and the calculation is most conveniently handled by Mathematica.
+\le z \le w$. This can be done analytically; there are four cases.
 \begin{equation}
   C_{LL}=
   \sum\limits_{m,n}\psi_m\psi_ne^{-\frac{|t+(t_m-t_n)}{\mu}}\times  
@@ -175,28 +174,24 @@ Substituting in the expression for $\xi_{CC}$ yields:
 \begin{equation}
 C_{CL}(t) = \sum\limits_{m}\, \sigma^2\psi_m\,\int_{-\infty}^{\infty}\,dt'e^{-\frac{|t'|}{\mu}}\Pi(t'-t-t_m|w)
 \end{equation}
-The convolution with the top-hat filter can be done analytically:
+The convolution with the top-hat filter can be done analytically,
+yielding an expression for $C_{CL}$:
 \begin{equation}
-  \int_{-\infty}^{\infty}\,dt'e^{-\frac{|t'|}{\mu}}\Pi(t'-t-t_m|w)
-  = \begin{cases}
-    2\mu e^{-\frac{|t-t_m|}{\mu}}\sinh(\frac{w}{2\mu}) & \text{for
-      $|t-t_m|>\frac{w}{2}$} \\
-    2\mu e^{-\frac{w}{2\mu}}\sinh(\frac{t-t_m}{2\mu}) & \text{for $|t-t_m|<\frac{w}{2}$}
-  \end{cases}
-\end{equation}
-
-Inserting this into the previous expression yields the analytic form
-of $C_{CL}$:
-\begin{equation}
-  C_{CL}=\sum\limits_{m}\,\,2\mu\,\psi_m\times
+  C_{CL}=\sum\limits_{m}\psi_m\sigma^2\times
   \begin{cases}
-    e^{-\frac{|t-t_m|}{\mu}}\sinh\left(\frac{w}{2\mu}\right) &
-    \text{for
-      $|t-t_m|>w$} \\
-    e^{-\frac{w}{2\mu}}\sinh\left(\frac{t-t_m}{2\mu}\right) &
-    \text{for $|t-t_m|<w$}
+    \frac{\mu}{w}e^{-\frac{w+y}{\mu}}\left(e^{2\frac{w}{\mu}}-1\right)
+    & \text{for $y > w$} \\
+    -\frac{\mu}{w}e^{-\frac{w+y}{\mu}}\left(1+e^{2\frac{y}{w}}-2e^{\frac{y+w}{\mu}}\right)
+    & \text{for $|y|\leq w$} \\
+    2\frac{\mu}{w}e^{\frac{y}{\mu}}\sinh\left(\frac{w}{\mu}\right) &
+    \text{for $y < w$}
   \end{cases}
 \end{equation}
+Note that, when I actually implementated, I found that this expression
+was just about exactly a factor of two too large; for
+$\psi_m=\delta_{m,0}$, the zero-lag covariance should be equal to
+$C_{CC}$, which is $\sigma^2$. 
+
 
 \subsection{Covariance Matrix Summary}
 The full signal covariance matrix $S$ can be written:
@@ -211,22 +206,31 @@ where the expressions for the covariances matrices are, for the sake
 of neatness and completeness:
 \begin{align}
   C_{CC,ij}& = \sigma^2e^{-\frac{|t_i-t_j|}{\mu}} \\
- C_{CL,ij}&=\sum\limits_{m}\,\,2\mu\,\psi_m\sigma^2\times
+  C_{CL}&=\sum\limits_{m}\psi_m\sigma^2\times
   \begin{cases}
-    e^{-\frac{|t_i-t_j-t_m|}{\mu}}\sinh\left(\frac{w}{2\mu}\right) &
-    \text{for
-      $|t_i-t_j-t_m|>w$} \\
-    e^{-\frac{w}{2\mu}}\sinh\left(\frac{t_i-t_j-t_m}{2\mu}\right) &
-    \text{for $|t_i-t_j-t_m|<w$}
-  \end{cases} \\
-  C_{LL,ij}&=
-  \sum\limits_{m,n}\psi_m\psi_n\sigma^2e^{-\frac{|t_i-t_j+(t_m-t_n)|}{\mu}}\times  
-  \begin{cases}
-    2\frac{\mu^2}{w^2}\left[\cosh\left(\frac{w}{\mu}\right)-1\right] & \text{for
-      $|t_i-t_j+(t_m-t_n)|>w$} \\
-    2\frac{\mu}{w}\cosh\left(\frac{t_i-t_j+(t_m-t_n)}{\mu}\right)\left[1+\mu\frac{e^{-\frac{\mu}{w}}-1}{w}\right]
-      & \text{for $|t_i-t_j+(t_m-t_n)|<w$}
-    \end{cases}
+    \frac{\mu}{w}e^{-\frac{w+t_i - t_j - t_m}{\mu}}\left(e^{2\frac{w}{\mu}}-1\right)
+    & \text{for $t_i - t_j - t_m > w$} \\
+    -\frac{\mu}{w}e^{-\frac{w+t_i - t_j - t_m}{\mu}}\left(1+e^{2\frac{t_i - t_j - t_m}{w}}-2e^{\frac{t_i - t_j - t_m+w}{\mu}}\right)
+    & \text{for $|t_i - t_j - t_m|\leq w$} \\
+    2\frac{\mu}{w}e^{\frac{t_i - t_j - t_m}{\mu}}\sinh\left(\frac{w}{\mu}\right) &
+    \text{for $t_i - t_j - t_m < w$}
+  \end{cases}\\
+   C_{LL}& =
+  \sum\limits_{m,n}\psi_m\psi_ne^{-\frac{|t+(t_m-t_n)}{\mu}}\times  \\
+&  \begin{cases}
+    \frac{\mu^2}{w^2}e^{-\frac{w+(t_i-t_j) + (t_m-t_n)}{\mu}}\left(e^{\frac{w}{\mu}}-1\right)^2
+    & \text{for $(t_i-t_j) + (t_m-t_n) > w$} \\
+    \frac{\mu^2}{w^2}e^{-\frac{(t_i-t_j) + (t_m-t_n)-w}{\mu}}\left(e^{\frac{w}{\mu}}-1\right)^2
+    & \text{for $(t_i-t_j) + (t_m-t_n) < -w$} \\
+    \frac{\mu}{w^2}e^{-\frac{w+(t_i-t_j) + (t_m-t_n)}{\mu}}\left(-\mu -
+      \mu e^{2\frac{(t_i-t_j) + (t_m-t_n)}{\mu}}+2\mu e^{\frac{w+2(t_i-t_j) + (t_m-t_n)}{\mu}}-2w
+      e^{\frac{w+(t_i-t_j) + (t_m-t_n)}{\mu}} - 2\left[(t_i-t_j) + (t_m-t_n)\right]e^{\frac{w+(t_i-t_j) + (t_m-t_n)}{\mu}}\right) & \text{for
+      $-w < (t_i-t_j) + (t_m-t_n) \leq 0$} \\
+    \frac{\mu}{w^2}e^{-\frac{(t_i-t_j) + (t_m-t_n)+w}{\mu}}\left( \mu - 2\mu
+      e^{\frac{w}{\mu}} +\mu e^{2\frac{(t_i-t_j) + (t_m-t_n)}{\mu}} + 2w
+      e^{\frac{(t_i-t_j) + (t_m-t_n)+w}{\mu}} - 2\left[(t_i-t_j) + (t_m-t_n)\right] e^{\frac{(t_i-t_j) + (t_m-t_n)+w}{\mu}} \right) & \text{for
+      $0 < (t_i-t_j) + (t_m-t_n) \leq w$}
+  \end{cases}
 \end{align}
 
 
