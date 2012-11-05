@@ -125,15 +125,24 @@ C_{LL} = \sum\limits_{m,n}\psi_m\psi_n\int_{-\infty}^{\infty}dt'\,\,\sigma^2e^{-
 \end{equation}
 First, make the integration variable swap $t'\mapsto z =
 (t'-t)-(t_m-t_n)$, and note that the new limits of integration are $-w
- \le z \le w$. This can be done analytically; there are two cases.
+\le z \le w$. This can be done analytically; there are six (!) cases,
+and the calculation is most conveniently handled by Mathematica.
 \begin{equation}
   C_{LL}=
   \sum\limits_{m,n}\psi_m\psi_ne^{-\frac{|t+(t_m-t_n)}{\mu}}\times  
   \begin{cases}
-    2\frac{\mu^2}{w^2}\left[\cosh\left(\frac{w}{\mu}\right)-1\right] & \text{for
-      $|t+(t_m-t_n)|>w$} \\
-    2\frac{\mu}{w}\cosh\left(\frac{t+(t_m-t_n)}{\mu}\right)\left[1+\mu\frac{e^{-\frac{\mu}{w}}-1}{w}\right]
-      & \text{for $|t+(t_m-t_n)|<w$}
+    \frac{\mu^2}{w^2}e^{-\frac{w+y}{\mu}}\left(e^{\frac{w}{\mu}}-1\right)^2
+    & \text{for $y > w$} \\
+    \frac{\mu^2}{w^2}e^{-\frac{y-w}{\mu}}\left(e^{\frac{w}{\mu}}-1\right)^2
+    & \text{for $y < -w$} \\
+    \frac{\mu}{w^2}e^{-\frac{w+y}{\mu}}\left(-\mu -
+      \mu e^{2\frac{y}{\mu}}+2\mu e^{\frac{w+2y}{\mu}}-2w
+      e^{\frac{w+y}{\mu}} - 2ye^{\frac{w+y}{\mu}}\right) & \text{for
+      $-w < y \leq 0$} \\
+    \frac{\mu}{w^2}e^{-\frac{y+w}{\mu}}\left( \mu - 2\mu
+      e^{\frac{w}{\mu}} +\mu e^{2\frac{y}{\mu}} + 2w
+      e^{\frac{y+w}{\mu}} - 2y e^{\frac{y+w}{\mu}} \right) & \text{for
+      $0 < y \leq w$}
   \end{cases}
 \end{equation}
 This is one part of the covariance matrix which appears (along with
