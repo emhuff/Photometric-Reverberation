@@ -233,6 +233,29 @@ of neatness and completeness:
   \end{cases}
 \end{align}
 
+\section{Photometric Observables}
+The SDSS does not present us with a clean timeseries of line and
+continuum measurements; rather, we have only broadband photometry,
+with each band representing a mixture of continuum and line
+emission. Let the observable vector be a set of broadband flux
+measurements performed in bands $Z_p$. Then we have:
+\begin{equation}
+  Z_p = a_p c\left(t\right) + b_p \left(t\right)
+\end{equation}
+Because everything is linear here, the broadband covariance matrix is
+a linear combination of the line and continuum covariances:
+\begin{equation}
+\mathrm{cov}(Z_p,Z_q)= a_pa_qC_{CC}+(a_pb_q +a_qb_p)C_{CL} + b_pb_qC_{LL}
+\end{equation}
+As a result, all the functional dependence of the full multiband
+covariance with respect to the mixing coefficents are linear; the
+dependence with respect to the $\psi_m$ is also still linear. As a
+result, the estimator eqn.~(\ref{eqn:estimator}) can easily be
+modified so as to return an estimate of the mixing parameters
+simultaneously with the estimates of the transfer function parameters!
+Better still, we have spectra for each individual quasar, and we know
+the filter response curves, so we have a good initial guess (from the
+line equivalent widths) for the $a$'s and $b$'s.
 
 
 \section{Constructing the Estimator.}
