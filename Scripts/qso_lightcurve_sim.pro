@@ -15,7 +15,7 @@ lightcurve = real_part(fft(pnoise,/inverse))
 return,lightcurve
 end
 
-pro qso_lightcurve_sim,t_in,tau=tau,sigma=sigma,tlag=tlag,continuum=continuum,line=line,flux=flux,doplot=doplot,transfer_sigma = transfer_sigma,psi=transfer
+pro qso_lightcurve_sim,t_in,tau=tau,sigma=sigma,tlag=tlag,continuum=continuum,line=line,flux=flux,doplot=doplot,transfer_sigma = transfer_sigma,psi=transfer,ttransfer = t_transfer
 if ~keyword_set(tau) then tau = 100.0
 if ~keyword_set(sigma) then sigma = 1.0
 if ~keyword_set(transfer_sigma) then transfer_sigma = 50.
@@ -48,7 +48,7 @@ continuum = interpol(lightcurve_oversampled,tgrid,t+burn_interval)
 transfer = exp(-(tgrid-tlag)^2/2./(2.0*transfer_sigma))
 transfer = transfer/total(transfer,/double)
 transfer = transfer[where(tgrid lt tlag + 5*transfer_Sigma)]
-
+t_transfer = tgrid[where(tgrid lt tlag + 5*transfer_sigma)]
 line_oversampled = convol(lightcurve_oversampled,transfer,/edge_truncate,center=0)
 line = interpol(line_oversampled,tgrid,t+burn_interval)
 
