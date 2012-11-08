@@ -14,7 +14,7 @@ C_cc = sigma^2*Exp(-(abs(ti-tj)/mu))
 return,C_cc
 end
 
-function C_CLcov_m,tobs,tpsi,psi_m,sigma,mu,w,delta_t
+function C_CLcov_m,tobs,tpsi,psi_m,sigma,mu,w
 ;This function takes time indices and a guess for psi, along with the
 ;quasar timeseries parameters, and returns the m'th element of the
 ;continuum-line cross-covariance.
@@ -56,7 +56,7 @@ return,C_CL_m/2.
 end
 
 
-function C_LLcov_mn,tobs,tpsi_m,tpsi_n,psi_m,psi_n,sigma,mu,w,delta_t
+function C_LLcov_mn,tobs,tpsi_m,tpsi_n,psi_m,psi_n,sigma,mu,w
 if n_elements(tpsi_m) ne 1 then stop
 if n_elements(psi_m) ne 1 then stop
 if n_elements(tpsi_n) ne 1 then stop
@@ -125,15 +125,15 @@ C_LL  = fltarr(nobs,nobs)
 C_CC = C_CCcov(tobs,sigma,mu)
 print,'making C_CL:'
 for m = 0L,npsi-1 do begin
-    print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
-    C_CL  += C_CLcov_m( tobs,tpsi[m],psi_in[m],sigma,mu,w,dt)
-    C_CLt += C_CLcov_m(-tobs,tpsi[m],psi_in[m],sigma,mu,w,dt)
+;    print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
+    C_CL  += C_CLcov_m( tobs,tpsi[m],psi_in[m],sigma,mu,w)
+    C_CLt += C_CLcov_m(-tobs,tpsi[m],psi_in[m],sigma,mu,w)
 endfor
 print,'Making C_LL:'
 for m = 0L,npsi-1 do begin
-    print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
+;    print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
     for n=0L,npsi-1 do begin
-        C_LL += C_LLcov_mn(tobs,tpsi[m],tpsi[n],psi_in[m],psi_in[n],sigma,mu,w,dt)
+        C_LL += C_LLcov_mn(tobs,tpsi[m],tpsi[n],psi_in[m],psi_in[n],sigma,mu,w)
     endfor
 endfor
 
@@ -149,17 +149,17 @@ f = dblarr(npsi)
 ;Make the Fisher matrix.
 print,'Building the Fisher Matrix.'
 for n = 0,npsi-1 do begin
-    print,string(form= '("Progress:",I02,"%")',float(n)/float(npsi)*100.)
+;    print,string(form= '("Progress:",I02,"%")',float(n)/float(npsi)*100.)
     for m = 0,npsi-1 do begin
-        dCL_dpsi_m  = C_CLcov_m( tobs,tpsi[m],1.,sigma,mu,w,dt)
-        dCL_dpsi_mt = C_CLcov_m(-tobs,tpsi[m],1.,sigma,mu,w,dt)
-        dCL_dpsi_n  = C_CLcov_m( tobs,tpsi[n],1.,sigma,mu,w,dt)
-        dCL_dpsi_nt = C_CLcov_m(-tobs,tpsi[n],1.,sigma,mu,w,dt)
+        dCL_dpsi_m  = C_CLcov_m( tobs,tpsi[m],1.,sigma,mu,w)
+        dCL_dpsi_mt = C_CLcov_m(-tobs,tpsi[m],1.,sigma,mu,w)
+        dCL_dpsi_n  = C_CLcov_m( tobs,tpsi[n],1.,sigma,mu,w)
+        dCL_dpsi_nt = C_CLcov_m(-tobs,tpsi[n],1.,sigma,mu,w)
         dLL_dpsi_m  = fltarr(nobs,nobs)
         dLL_dpsi_n  = fltarr(nobs,nobs)
         for i = 0,npsi-1 do begin
-            dLL_dpsi_m += C_LLcov_mn(tobs,tpsi[m],tpsi[i],1.,psi_in[i],sigma,mu,w,dt)
-            dLL_dpsi_n += C_LLcov_mn(tobs,tpsi[i],tpsi[n],psi_in[i],1.,sigma,mu,w,dt)
+            dLL_dpsi_m += C_LLcov_mn(tobs,tpsi[m],tpsi[i],1.,psi_in[i],sigma,mu,w)
+            dLL_dpsi_n += C_LLcov_mn(tobs,tpsi[i],tpsi[n],psi_in[i],1.,sigma,mu,w)
 ;function C_LLcov_mn,tobs,tpsi_m,tpsi_n,psi_m,psi_n,sigma,mu,w,delta_t
         endfor
 ;Now make dC_dm:

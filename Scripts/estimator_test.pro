@@ -6,21 +6,23 @@ pro estimator_test,tlag=tlag,nobs=nobs,w=w
 ;dt = 1000/float(nobs)
 ;tobs = findgen(nobs)*dt
 restore,'example_mjd.sav'
-tobs = mjd
+tobs = [float(mjd),max(mjd+10.)+float(mjd)]
 nobs = n_elements(tobs)
 tau=100.
 if n_elements(tlag) eq 0 then  tlag= 300.
-psi_width = 80.
-qso_lightcurve_sim,tobs,tlag=tlag,c=c,l=l,tau=tau,$
-  transfer_sigma=psi_width,psi=psi
+psi_width = 20.
 
-;This produces a visible peak in the cross-correlation.
-;cl = c_correlate(c,l,findgen(nobs))
-;ll = a_correlate(l,findgen(nobs))
+dtpsi = psi_width/10.
+tpsi_max = tlag + 5*psi_width
+ngrid_psi = float(ceil(tpsi_max/dtpsi))
+tpsi_true = dtpsi * findgen(ngrid_psi)
+psi_true = exp(-(tpsi_true-tlag)^2/2./psi_width^2)
+psi_true = psi_true/int_tabulated(tpsi_true,psi_true)
+
 
 ;Add a small amount of white noise.
-noise_amplitude = .250
-noise = replicate(noise_amplitude^2,2*nobs)
+noise_variance = .05^2
+noise_vector = replicate(noise_variance,2*nobs)
 
 ;Now let us see if we can correctly back out the transfer function.
 ;Let's solve for psi in bins of width=w, ranging from t=0 to t=tmax
@@ -35,7 +37,7 @@ psi_in = exp(-(tpsi-tlag)^2/2./psi_width^2)
 psi_in *= 0.
 psi_in[0] = 1.0
 ;psi_in = interpol(psi,tobs[0:n_elements(psi)-1],tpsi)
-;psi_in = psi_in/total(psi_in)
+psi_in = psi_in/int_tabulated(tpsi,psi_in)
 
 ;Next, compute the covariance matrices and the optimal estimator and all.
 
@@ -44,21 +46,18 @@ psi_in[0] = 1.0
 niter= 200.
 psi_avg = fltarr(nbins,niter)
 for i=0L,niter-1 do begin
-    print,'Iteration: ',string(niter,form='(I0)')
-    undefine,c
-    undefine,l
-    qso_lightcurve_sim,tobs,tlag=tlag,c=c,l=l,tau=tau,$
-      transfer_sigma=psi_width,psi=psi,sigma=1.0
-    c += noise_amplitude*randomn(seed,nobs)
-    l += noise_amplitude*randomn(seed,nobs)
-    optimal_estimator,tobs,tpsi,[c,l],w,dt,sigma=1.0,mu=tau,psi_in=psi_in,$
-      psi_out=psi_out_intermediate,C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,noise=noise
-    optimal_estimator,tobs,tpsi,[c,l],w,dt,sigma=1.0,mu=tau,$
+    print,'Iteration: ',string(i,form='(I0)')
+    y = drw_sim_covar(tobs,tpsi_true,psi_true,sigma=sigma,mu=tau,$
+                      noise=noise_vector,reset = (i eq 0))
+    optimal_estimator,tobs,tpsi,y,w,dt,sigma=1.0,mu=tau,psi_in=psi_in,$
+      psi_out=psi_out_intermediate,C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,$
+      noise=noise_vector
+    optimal_estimator,tobs,tpsi,y,w,dt,sigma=1.0,mu=tau,$
       psi_in=psi_out_intermediate,psi_out=psi_out,$
-      C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,noise=noise
+      C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,noise=noise_vector
     psi_avg[*,i] = -psi_out
     plot,tpsi,total(psi_avg,2)/float(niter)
-    oplot,tobs,exp(-(tobs-tlag)^2/2./psi_width^2),color=200
+    oplot,tpsi_true,psi_true,color=1.5e6
 
 endfor
 
