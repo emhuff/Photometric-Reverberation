@@ -43,7 +43,7 @@ psi_in = psi_in/int_tabulated(tpsi,psi_in)
 
 
 
-niter= 200.
+niter= 2000.
 psi_avg = fltarr(nbins,niter)
 for i=0L,niter-1 do begin
     print,'Iteration: ',string(i,form='(I0)')
@@ -56,8 +56,8 @@ for i=0L,niter-1 do begin
       psi_in=psi_out_intermediate,psi_out=psi_out,$
       C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,noise=noise_vector
     psi_avg[*,i] = -psi_out
-    plot,tpsi,total(psi_avg,2)/float(niter)
-    oplot,tpsi_true,psi_true,color=1.5e6
+;    plot,tpsi,total(psi_avg,2)/float(niter)
+;    oplot,tpsi_true,psi_true,color=1.5e6
 
 endfor
 
