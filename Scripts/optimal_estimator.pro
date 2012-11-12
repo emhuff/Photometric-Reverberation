@@ -123,13 +123,13 @@ C_LL  = fltarr(nobs,nobs)
 
 
 C_CC = C_CCcov(tobs,sigma,mu)
-print,'making C_CL:'
+;print,'making C_CL:'
 for m = 0L,npsi-1 do begin
 ;    print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
     C_CL  += C_CLcov_m( tobs,tpsi[m],psi_in[m],sigma,mu,w)
     C_CLt += C_CLcov_m(-tobs,tpsi[m],psi_in[m],sigma,mu,w)
 endfor
-print,'Making C_LL:'
+;print,'Making C_LL:'
 for m = 0L,npsi-1 do begin
 ;    print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
     for n=0L,npsi-1 do begin
@@ -147,7 +147,7 @@ Fisher = dblarr(npsi,npsi)
 q = dblarr(npsi)
 f = dblarr(npsi)
 ;Make the Fisher matrix.
-print,'Building the Fisher Matrix.'
+;print,'Building the Fisher Matrix.'
 for n = 0,npsi-1 do begin
 ;    print,string(form= '("Progress:",I02,"%")',float(n)/float(npsi)*100.)
     for m = 0,npsi-1 do begin
