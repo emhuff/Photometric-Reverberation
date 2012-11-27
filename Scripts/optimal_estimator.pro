@@ -108,7 +108,7 @@ end
 pro optimal_estimator,tobs,tpsi,data,w,dt,sigma=sigma,mu=mu,$
                       psi_in=psi_in,psi_out=psi_out,$
                       C_CC=C_CC,C_CL=C_CL,C_LL=C_LL,$
-                      noise=noise
+                      noise=noise,cond=cond
 
 nobs = n_elements(tobs)
 npsi = n_elements(tpsi)
@@ -142,7 +142,7 @@ Ncovar = diag_matrix(noise)
 ;Make the Big Covariance Matrix.
 
 C = [[C_CC,C_CL],[C_CLt,C_LL]]+Ncovar
-Cinv = LA_invert(C,status=status,/double)
+Cinv = LA_invert(C,status=status1,/double)
 Fisher = dblarr(npsi,npsi)
 q = dblarr(npsi)
 f = dblarr(npsi)
@@ -174,5 +174,5 @@ endfor
 
 Finv = LA_invert(Fisher,status=status2,/double)
 psi_out = Finv # (q-f)
-
+cond = status1+status2
 end

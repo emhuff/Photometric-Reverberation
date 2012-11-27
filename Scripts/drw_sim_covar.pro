@@ -1,4 +1,4 @@
-function drw_sim_covar,tobs,tpsi,psi,$
+function drw_sim_covar,tobs,tpsi,psi,cond=cond,$
                        sigma=sigma,mu=mu,reset=reset,noise=noise
 COMMON MASTER_COVARIANCE,M_master
 if  keyword_set(reset) then undefine,m_master
@@ -28,7 +28,7 @@ endelse
 
 dev = randomn(seed,2*n_elements(tobs))
 y = M # dev
-
+cond=status
 
 return,y
 end

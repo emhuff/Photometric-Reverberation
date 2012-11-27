@@ -3,7 +3,7 @@ pro s82_simulate,tlag=tlag,w=w
 ;Generate light curves using the actual Stripe 82 cadences.
 restore,'sdss_S82_cadences.sav'
 nobs_vec = total(mjd_obs ge 0,2)
-usable = where(nobs_vec gt 10 AND zlist gt 0)
+usable = where(nobs_vec gt 20 AND zlist gt 0)
 zlist = zlist[usable]
 mjd_obs = mjd_obs[usable,*]
 
@@ -47,10 +47,11 @@ psi_in = psi_in/int_tabulated(tpsi,psi_in)
 
 
 
-niter= 2000.
+niter= 100.
 qsoind = random_indices(n_elements(zlist),niter)
 
 psi_avg = fltarr(nbins,niter)
+condrecord = lonarr(3,niter)
 for i=0L,niter-1 do begin
 
 ;   Choose the observation time and the redshift.
@@ -66,17 +67,19 @@ for i=0L,niter-1 do begin
     noise_vector = replicate(noise_variance,2*n_elements(tobs))
     
     y = drw_sim_covar(tobs/(1+z),tpsi_true,psi_true,sigma=sigma,mu=tau,$
-                      noise=noise_vector,/reset)
+                      noise=noise_vector,/reset,cond=cond1)
     optimal_estimator,tobs/(1+z),tpsi,y,w,dt,sigma=1.0,mu=tau,psi_in=psi_in,$
       psi_out=psi_out_intermediate,C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,$
-      noise=noise_vector
+      noise=noise_vector,cond=cond2
     optimal_estimator,tobs/(1+z),tpsi,y,w,dt,sigma=1.0,mu=tau,$
       psi_in=psi_out_intermediate,psi_out=psi_out,$
-      C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,noise=noise_vector
+      C_CC=CCcov,C_CL=CLcov,C_LL=LLcov,noise=noise_vector,cond=cond3
     psi_avg[*,i] = -psi_out
-;    plot,tpsi,total(psi_avg,2)/float(niter)
-;    oplot,tpsi_true,psi_true,color=1.5e6
-
+    plot,tpsi,-psi_out;total(psi_avg,2)/float(niter)
+    oplot,tpsi_true,psi_true,color=1.5e6
+    xyouts,0.8,0.8,cond1+cond2+cond3,/norm,charsize=1.5
+    print,'Matrix conditioning: ',cond1,cond2,cond3
+    condrecord[*,i] = [cond1,cond2,cond3]
 endfor
 save,tpsi,psi_avg,file=string(form='("sdss_sim.tlag.",I05,".niter.",I0,".sav")',long(tlag),long(niter))
 prepare_plots,/color
