@@ -1,4 +1,4 @@
-function drw_sim_covar,tobs,tpsi,psi,cond=cond,$
+function drw_sim_covar,tobs,tpsi,psi,cond=cond,seed=seed,$
                        sigma=sigma,mu=mu,reset=reset,noise=noise
 COMMON MASTER_COVARIANCE,M_master
 if  keyword_set(reset) then undefine,m_master
@@ -12,7 +12,7 @@ else begin
     if ~keyword_set(noise) then noise = replicate(0.01,2*nobs)
     
     reverb_covariance,tobs,tpsi,psi,w,$
-      sigma=sigma,covar=Cov,$
+      sigma=sigma,covar=Cov,mu=mu,$
       noise=noise,C_CL=C_CL
     
 
@@ -24,11 +24,12 @@ else begin
 ;    if status ne 0 then stop
     M = M * mask
     M_master = M
+    cond=status
 endelse
 
 dev = randomn(seed,2*n_elements(tobs))
 y = M # dev
-cond=status
+;
 
 return,y
 end
