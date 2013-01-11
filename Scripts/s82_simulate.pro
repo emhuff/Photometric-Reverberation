@@ -26,7 +26,7 @@ tpsi_max = tlag + 5*psi_width
 ngrid_psi = float(ceil(tpsi_max/dtpsi))
 tpsi_true = dtpsi * findgen(ngrid_psi)
 psi_true = exp(-(tpsi_true-tlag)^2/2./psi_width^2)
-psi_true = psi_true/int_tabulated(tpsi_true,psi_true)
+psi_true = 100.0*psi_true/int_tabulated(tpsi_true,psi_true)
 
 ;Now let us see if we can correctly back out the transfer function.
 ;Let's solve for psi in bins of width=w, ranging from t=0 to t=tmax

@@ -1,3 +1,17 @@
+;+
+; NAME: optimal_covariance
+;
+; PURPOSE:
+;    This function is meant to compute the covariance matrix of the
+;    OQEstimator. We'll use it to weight the ensemble-averaged
+;    points in the final analysis.
+;
+; USAGE:
+;
+;
+;
+;-
+
 function C_CCcov,tobs,sigma,mu
 ;This function takes a list of observation times, and produces the
 ;covariance matrix of the continuum light curve.
@@ -105,74 +119,33 @@ endif
 return,C_LL_mn
 end
 
-pro optimal_estimator,tobs,tpsi,data,w,dt,sigma=sigma,mu=mu,$
-                      psi_in=psi_in,psi_out=psi_out,$
-                      C_CC=C_CC,C_CL=C_CL,C_LL=C_LL,$
-                      noise=noise,cond=cond,Fisher=fisher
+pro optimal_covariance,tobs,tpsi,w,sigma=sigma,mu=mu,$
+                       psi_in=psi_in,noise=noise
 
-nobs = n_elements(tobs)
-npsi = n_elements(tpsi)
+npars = n_elements(tpsi)
+psi_covar = dblarr(npars,npars)
+reverb_covariance,tobs,tpsi,psi_in,w,sigma=sigma,mu=mu,$
+                      covar=C,C_CC=C_CC,C_CL=C_CL,C_LL=C_LL,$
+                      noise=noise
 
-if ~keyword_set(psi_in) then psi_in = replicate(1./float(npsi),npsi)
-if ~keyword_set(sigma) then sigma = 1.0
-if ~keyword_set(mu) then mu = 100.
-
-C_CL  = fltarr(nobs,nobs)
-C_CLt = fltarr(nobs,nobs)
-C_LL  = fltarr(nobs,nobs)
-
-
-C_CC = C_CCcov(tobs,sigma,mu)
-;print,'making C_CL:'
-for m = 0L,npsi-1 do begin
-;    print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
-    C_CL  += C_CLcov_m( tobs,tpsi[m],psi_in[m],sigma,mu,w)
-    C_CLt += C_CLcov_m(-tobs,tpsi[m],psi_in[m],sigma,mu,w)
-endfor
-;print,'Making C_LL:'
-for m = 0L,npsi-1 do begin
-;    print,string(form= '("Progress:",I02,"%")',float(m)/float(npsi)*100.)
-    for n=0L,npsi-1 do begin
-        C_LL += C_LLcov_mn(tobs,tpsi[m],tpsi[n],psi_in[m],psi_in[n],sigma,mu,w)
-    endfor
+Cinv = LA_invert(C,/double,status=status)
+if status gt 0 then stop
+for alpha = 0,npars-1 do begin
+   for beta = 0,npars-1 do begin
+      dC_psi_alpha = 
+      dC_psi_beta  = 
+;------------------------------------------------------------------
+;     Compute the Q matrix for this parameter.
+;     Q = (tr[Cinv dC_dalpha Cinv dC_dbeta])^-1 * Cinv * dC_dalpha * Cinv
+      Qalpha = trace(Cinv # dC_dpsi_alpha # Cinv # dC_dpsi_alpha) * Cinv # dC_dpsi_alpha # Cinv
+      Qbeta  = trace(Cinv # dC_dpsi_beta # Cinv # dC_dpsi_beta) * Cinv # dC_dpsi_beta # Cinv
+;------------------------------------------------------------------
+;     Compute the parameter covariance matrix
+;     CP[alpha,beta] = 2 * tr[C Q(alpha) C Q(beta)]
+      psi_covar[alpha,beta] = 2*trace(C # Qalpha # C # Qbeta )
+;------------------------------------------------------------------
+   endfor
 endfor
 
-Ncovar = diag_matrix(noise)
 
-;Make the Big Covariance Matrix.
-
-C = [[C_CC,C_CL],[C_CLt,C_LL]]+Ncovar
-Cinv = LA_invert(C,status=status1,/double)
-Fisher = dblarr(npsi,npsi)
-q = dblarr(npsi)
-f = dblarr(npsi)
-;Make the Fisher matrix.
-;print,'Building the Fisher Matrix.'
-for n = 0,npsi-1 do begin
-;    print,string(form= '("Progress:",I02,"%")',float(n)/float(npsi)*100.)
-    for m = 0,npsi-1 do begin
-        dCL_dpsi_m  = C_CLcov_m( tobs,tpsi[m],1.,sigma,mu,w)
-        dCL_dpsi_mt = C_CLcov_m(-tobs,tpsi[m],1.,sigma,mu,w)
-        dCL_dpsi_n  = C_CLcov_m( tobs,tpsi[n],1.,sigma,mu,w)
-        dCL_dpsi_nt = C_CLcov_m(-tobs,tpsi[n],1.,sigma,mu,w)
-        dLL_dpsi_m  = fltarr(nobs,nobs)
-        dLL_dpsi_n  = fltarr(nobs,nobs)
-        for i = 0,npsi-1 do begin
-            dLL_dpsi_m += C_LLcov_mn(tobs,tpsi[m],tpsi[i],1.,psi_in[i],sigma,mu,w)
-            dLL_dpsi_n += C_LLcov_mn(tobs,tpsi[i],tpsi[n],psi_in[i],1.,sigma,mu,w)
-;function C_LLcov_mn,tobs,tpsi_m,tpsi_n,psi_m,psi_n,sigma,mu,w,delta_t
-        endfor
-;Now make dC_dm:
-        dC_dm = [[C_CC*0.,dCL_dpsi_m],[dCL_dpsi_mt,dLL_dpsi_m]]
-;And make dC_dn:
-        dC_dn = [[C_CC*0.,dCL_dpsi_n],[dCL_dpsi_nt,dLL_dpsi_n]]
-        Fisher[m,n] = 0.5*trace(Cinv # dC_dm # Cinv # dC_dn)
-    endfor
-    q[n] = 0.5*trace(Cinv # dC_dn # Cinv # Ncovar)
-    f[n] = 0.5*transpose(data) # Cinv # dC_dn # Cinv # data
-endfor
-
-Finv = LA_invert(Fisher,status=status2,/double)
-psi_out = Finv # (q-f)
-cond = status1+status2
 end
