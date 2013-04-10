@@ -2,18 +2,18 @@ pro estimator_test,tlag=tlag,nobs=nobs,w=w
 
 ;Generate a very long, very well-sampled lightcurve.
 
-;if ~keyword_set(nobs) then nobs = 50.
-;dt = 1000/float(nobs)
-;tobs = findgen(nobs)*dt
-restore,'example_mjd.sav'
+if ~keyword_set(nobs) then nobs = 500.
+dt = 20000./float(nobs)
+tobs = findgen(nobs)*dt
+;restore,'example_mjd.sav'
 ;tobs = [float(mjd),max(mjd+10.)+float(mjd)]
 ;tobs = (mjd - min(mjd))
-dt=10.
-tobs = [findgen(25),findgen(25)+60]*dt
-nobs = n_elements(tobs)
+;dt=10.
+;tobs = [findgen(50),findgen(50)+110]*dt
+;nobs = n_elements(tobs)
 tau=50.
-if n_elements(tlag) eq 0 then  tlag= 35.
-psi_width = 10.
+if n_elements(tlag) eq 0 then  tlag= 853.
+psi_width = 50.
 
 dtpsi = psi_width/10.
 tpsi_max = tlag + 5*psi_width
@@ -24,17 +24,17 @@ psi_true = 100.*psi_true/int_tabulated(tpsi_true,psi_true)
 
 
 ;Add a small amount of white noise.
-noise_variance = .1^2
+noise_variance = .001^2
 noise_vector = replicate(noise_variance,2*nobs)
 
 ;Now let us see if we can correctly back out the transfer function.
 ;Let's solve for psi in bins of width=w, ranging from t=0 to t=tmax
-if ~keyword_set(w) then  w= 50.
-tmax = 600.
+
+if ~keyword_set(w) then  w= 100.
+tmax = 400.
 tmin = 0.
 nbins = float(ceil((tmax-tmin)/w))
 tpsi = [w/2+w*findgen(nbins)]
-
 
 psi_in = exp(-(tpsi-tlag)^2/2./psi_width^2)
 ;psi_in *= 0.
@@ -46,7 +46,7 @@ psi_in = 10.*psi_in/int_tabulated(tpsi,psi_in)
 
 
 
-niter= 1.
+niter= 100.
 psi_avg = fltarr(nbins,niter)
 weight = psi_avg
 for i=0L,niter-1 do begin
@@ -63,8 +63,8 @@ for i=0L,niter-1 do begin
     finv = invert(fisher,/double)
     psi_avg[*,i] = -psi_out
     weight[*,i] = diag_matrix(finv)
-;    plot,tpsi,total(psi_avg,2)/float(niter)
-;    oplot,tpsi_true,psi_true,color=1.5e6
+    plot,tpsi,total(psi_avg,2)/float(niter)
+    oplot,tpsi_true,psi_true,color=1.5e6
 
 endfor
 save,tpsi,weight,psi_avg,file=string(form='("estimator_test.mjd.tlag.",I05,".sav")',long(tlag))

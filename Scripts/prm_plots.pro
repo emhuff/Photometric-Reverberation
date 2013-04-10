@@ -30,16 +30,15 @@ for i = 0,nqso-1 do begin
    continuum = data[0:(nobs-1)]
    line = data[nobs:(2*nobs-1)]
    data_photo = [continuum,0.9*continuum+0.1*line]
-   psopen,'example_lightcurve_well-sampled.ps',xsize=6,ysize=6,/inches,/enc,/color
-   prepare_plots,/color
-   plot,tobs,continuum+3,xtitle='t (days)',ytitle='flux (arbitrary)',yr=[-8,8]
-   oplot,tobs,line/10.-3,color=150
-   oplot,[tobs[100],tobs[100]],[-10,continuum[100]+3],color=200
-   oplot,[tobs[100],tobs[100]]+tlag,[-10,interpol(line/10.-3,tobs,tobs[100]+tlag)],color=200
-   prepare_plots,/reset
-   psclose
+;   psopen,'example_lightcurve_well-sampled.ps',xsize=6,ysize=6,/inches,/enc,/color
+;   prepare_plots,/color
+;   plot,tobs,continuum+3,xtitle='t (days)',ytitle='flux (arbitrary)',yr=[-8,8]
+;   oplot,tobs,line/10.-3,color=150
+;   oplot,[tobs[100],tobs[100]],[-10,continuum[100]+3],color=200
+;   oplot,[tobs[100],tobs[100]]+tlag,[-10,interpol(line/10.-3,tobs,tobs[100]+tlag)],color=200
+;   prepare_plots,/reset
+;   psclose
    
-   stop
    w = tobs[1]-tobs[0]
    
    optimal_estimator,tobs,tpsi,data,w,1.0,sigma=1.0,mu=tau,psi_in=psi,psi_out=psi_out,fisher=fisher,noise=noise

@@ -30,7 +30,7 @@ psi_true = 100.0*psi_true/int_tabulated(tpsi_true,psi_true)
 
 ;Now let us see if we can correctly back out the transfer function.
 ;Let's solve for psi in bins of width=w, ranging from t=0 to t=tmax
-if ~keyword_set(w) then  w= 30.
+if ~keyword_set(w) then  w= 100.
 tmax = 1000.
 tmin = 0.
 nbins = float(ceil((tmax-tmin)/w))
